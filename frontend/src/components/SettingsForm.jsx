@@ -64,7 +64,7 @@ function TagInput({ label, values, onChange }) {
   );
 }
 
-export default function SettingsForm() {
+export default function SettingsForm({ onSave }) {
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -83,6 +83,7 @@ export default function SettingsForm() {
     try {
       await saveCriteria(form);
       setSaved(true);
+      onSave?.();
       setTimeout(() => setSaved(false), 2500);
     } finally {
       setSaving(false);
