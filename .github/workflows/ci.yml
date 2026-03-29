@@ -33,10 +33,9 @@ jobs:
 
       - name: Run unit + integration + security + performance tests
         working-directory: backend
-        run: python -m pytest tests/ -v --ignore=tests/test_smoke.py
+        run: python -m pytest tests/ --ignore=tests/test_smoke.py -v
 
       - name: Run smoke tests against Railway
-        if: ${{ secrets.JOBRADAR_API_URL != '' }}
         working-directory: backend
         env:
           JOBRADAR_API_URL: ${{ secrets.JOBRADAR_API_URL }}
