@@ -20,6 +20,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "https://job-aggregator-ashen.vercel.app",
+        "https://jobradar.tevinjrose.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
