@@ -19,7 +19,7 @@ async def run_scrape(db: AsyncSession, session_id: str) -> dict:
     ).scalars().all()
 
     if not companies:
-        return {"total_fetched": 0, "new_jobs": 0, "cached": 0, "scored": 0}
+        return {"total_fetched": 0, "new_jobs": 0, "cached": 0, "no_results": []}
 
     cutoff = datetime.now(timezone.utc) - timedelta(hours=CACHE_HOURS)
 

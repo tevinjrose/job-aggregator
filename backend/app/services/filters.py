@@ -48,9 +48,15 @@ def is_us_location(location: str | None) -> bool:
     if any(k in loc for k in ("united states", " usa", "(usa)", ", usa", "u.s.a")):
         return True
 
-    # US-qualified remote
+    # US-qualified remote — also accept "City / Remote" hybrid patterns
     if "remote" in loc:
-        return any(hint in loc for hint in US_REMOTE_HINTS)
+        if any(hint in loc for hint in US_REMOTE_HINTS):
+            return True
+        if any(city in loc for city in US_CITY_HINTS):
+            return True
+        if any(state in loc for state in US_STATES):
+            return True
+        return False
 
     # State name or abbreviation
     if any(state in loc for state in US_STATES):
