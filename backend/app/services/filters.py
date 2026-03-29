@@ -24,12 +24,26 @@ US_STATE_ABBREVS = {
 }
 
 US_CITY_HINTS = {
+    # Major metros
     "new york", "san francisco", "los angeles", "chicago", "austin",
     "seattle", "boston", "denver", "atlanta", "miami", "dallas",
     "houston", "phoenix", "portland", "san diego", "philadelphia",
     "minneapolis", "detroit", "nashville", "charlotte", "raleigh",
     "salt lake", "pittsburgh", "baltimore", "las vegas", "san jose",
     "brooklyn", "manhattan", "silicon valley", "bay area",
+    # Additional US cities commonly seen in job listings
+    "indianapolis", "columbus", "louisville", "memphis", "richmond",
+    "sacramento", "long beach", "mesa", "colorado springs", "madison",
+    "durham", "jersey city", "irvine", "spokane", "boise", "omaha",
+    "kansas city", "oklahoma city", "st. louis", "cincinnati",
+    "virginia beach", "santa clara", "mountain view", "menlo park",
+    "redwood city", "palo alto", "sunnyvale", "cupertino", "san mateo",
+    "bellevue", "kirkland", "redmond", "tempe", "chandler", "gilbert",
+    "st. paul", "tampa", "orlando", "jacksonville", "cleveland",
+    "new orleans", "tucson", "fresno", "albuquerque", "riverside",
+    "anchorage", "honolulu", "little rock", "baton rouge",
+    "ontario", "aurora", "anaheim", "santa ana", "corpus christi",
+    "lexington", "henderson", "fort worth", "stockton",
 }
 
 US_REMOTE_HINTS = {"us remote", "remote us", "remote - us", "remote (us",
@@ -67,9 +81,13 @@ def is_us_location(location: str | None) -> bool:
         return True
 
     # Comma-separated "City, ST" pattern (e.g. "Austin, TX")
+    # Require the city portion to be a known US city to avoid false positives
+    # like "Bengaluru, IN" matching Indiana's abbreviation.
     parts = [p.strip() for p in loc.split(",")]
     if len(parts) >= 2 and parts[-1].strip() in US_STATE_ABBREVS:
-        return True
+        city_part = parts[0].strip()
+        if any(city in city_part for city in US_CITY_HINTS):
+            return True
 
     return False
 

@@ -89,6 +89,20 @@ def test_paris_france():
 def test_toronto_canada():
     assert is_us_location("Toronto, Canada") is False
 
+def test_bengaluru_in_not_indiana():
+    """'IN' is Indiana's abbreviation but Bengaluru is in India."""
+    assert is_us_location("Bengaluru, IN") is False
+
+def test_chennai_in_not_indiana():
+    assert is_us_location("Chennai, IN") is False
+
+def test_hyderabad_in_not_indiana():
+    assert is_us_location("Hyderabad, IN") is False
+
+def test_indianapolis_in_is_us():
+    """Indianapolis IS in Indiana."""
+    assert is_us_location("Indianapolis, IN") is True
+
 def test_sydney_australia():
     assert is_us_location("Sydney, Australia") is False
 
