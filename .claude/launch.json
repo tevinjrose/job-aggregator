@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "FastAPI Backend",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd backend && uvicorn app.main:app --reload --port 8000"],
+      "port": 8000
+    },
+    {
+      "name": "Vite Frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "Personal Site",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "python3 -m http.server 3000 --directory /Users/tevinjrose/Github/blarsu.github.io"],
+      "port": 3000
+    }
+  ]
+}
