@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Tests & Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt pytest pytest-asyncio httpx anyio aiosqlite bandit pip-audit
+
+      - name: Bandit security scan
+        run: python -m bandit -r backend/app/ -f txt
+
+      - name: Dependency vulnerability audit
+        run: python -m pip_audit -r backend/requirements.txt
+
+      - name: Run unit + integration + security + performance tests
+        working-directory: backend
+        run: python -m pytest tests/ -v --ignore=tests/test_smoke.py
+
+      - name: Run smoke tests against Railway
+        if: ${{ secrets.JOBRADAR_API_URL != '' }}
+        working-directory: backend
+        env:
+          JOBRADAR_API_URL: ${{ secrets.JOBRADAR_API_URL }}
+        run: python -m pytest tests/test_smoke.py -v
