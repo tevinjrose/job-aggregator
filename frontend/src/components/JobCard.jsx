@@ -43,7 +43,7 @@ export default function JobCard({ job, onRemove }) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 flex gap-4 hover:shadow-sm dark:hover:shadow-none transition-shadow">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-5 flex gap-3 sm:gap-4 hover:shadow-sm dark:hover:shadow-none transition-shadow">
       {/* Score badge */}
       <div className={`flex-shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center ${style.bg}`}>
         <span className={`text-lg font-bold leading-none ${style.text}`}>{style.label}</span>
@@ -55,7 +55,7 @@ export default function JobCard({ job, onRemove }) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{job.title}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               <span className="font-medium text-gray-700 dark:text-gray-300 capitalize">
@@ -67,11 +67,12 @@ export default function JobCard({ job, onRemove }) {
               )}
             </p>
           </div>
+          {/* Apply — hidden on mobile; lives in the action row instead */}
           <a
             href={job.apply_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-shrink-0 text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
+            className="hidden sm:inline-flex flex-shrink-0 text-sm px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
           >
             Apply →
           </a>
@@ -89,7 +90,7 @@ export default function JobCard({ job, onRemove }) {
           <button
             disabled={loading}
             onClick={() => handleStatus("saved")}
-            className={`text-xs px-3 py-1 rounded-lg border transition-colors ${
+            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
               status === "saved"
                 ? "bg-indigo-600 text-white border-indigo-600"
                 : "border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
@@ -100,7 +101,7 @@ export default function JobCard({ job, onRemove }) {
           <button
             disabled={loading}
             onClick={() => handleStatus("applied")}
-            className={`text-xs px-3 py-1 rounded-lg border transition-colors ${
+            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
               status === "applied"
                 ? "bg-green-600 text-white border-green-600"
                 : "border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-green-400 hover:text-green-600 dark:hover:border-green-500 dark:hover:text-green-400"
@@ -108,10 +109,19 @@ export default function JobCard({ job, onRemove }) {
           >
             Applied
           </button>
+          {/* Apply — mobile only, sits alongside the status buttons */}
+          <a
+            href={job.apply_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sm:hidden text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
+          >
+            Apply →
+          </a>
           <button
             disabled={loading}
             onClick={() => handleStatus("dismissed")}
-            className="text-xs px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:border-red-300 dark:hover:border-red-700 hover:text-red-500 dark:hover:text-red-400 transition-colors ml-auto"
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:border-red-300 dark:hover:border-red-700 hover:text-red-500 dark:hover:text-red-400 transition-colors ml-auto"
           >
             Dismiss
           </button>

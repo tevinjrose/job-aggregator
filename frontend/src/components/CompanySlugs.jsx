@@ -56,7 +56,7 @@ export default function CompanySlugs({ companies = [], onRefresh }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {SOURCES.map((source) => (
-        <div key={source} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+        <div key={source} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-5">
           <div className="mb-3">
             <h3 className="font-semibold text-gray-800 dark:text-gray-200">
               {SOURCE_LABELS[source]}

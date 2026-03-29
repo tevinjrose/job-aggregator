@@ -82,10 +82,10 @@ export default function Settings() {
   const canScrape = hasTitles && companies.length > 0;
 
   return (
-    <div className="space-y-10">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 sm:space-y-10">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col sm:items-end gap-1">
           {!hasTitles && (
             <p className="text-xs text-amber-500 dark:text-amber-400">
               Add at least one job title to enable scraping

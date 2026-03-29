@@ -103,7 +103,7 @@ export default function SettingsForm({ onSave }) {
   if (!form) return <p className="text-sm text-gray-400 dark:text-gray-500">Loading…</p>;
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6 space-y-6">
       {Object.entries(FIELD_LABELS).map(([field, label]) => (
         <TagInput
           key={field}
@@ -151,7 +151,7 @@ export default function SettingsForm({ onSave }) {
         </label>
       </div>
 
-      <div className="flex items-center gap-3 pt-2">
+      <div className="flex flex-wrap items-center gap-3 pt-2">
         <button
           type="submit"
           disabled={saving}

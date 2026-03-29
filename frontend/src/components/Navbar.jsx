@@ -33,8 +33,8 @@ export default function Navbar({ dark, onToggleDark }) {
         <Link to="/" className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
           JobRadar
         </Link>
-        <div className="flex items-center gap-6">
-          <div className="flex gap-6 text-sm font-medium">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <div className="flex gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
             <Link
               to="/"
               className={
