@@ -68,6 +68,7 @@ export default function SettingsForm({ onSave }) {
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     getCriteria().then((r) => setForm(r.data));
@@ -75,6 +76,7 @@ export default function SettingsForm({ onSave }) {
 
   function setList(field, values) {
     setForm((prev) => ({ ...prev, [field]: values }));
+    setIsDirty(true);
   }
 
   async function handleSubmit(e) {
@@ -83,6 +85,7 @@ export default function SettingsForm({ onSave }) {
     try {
       await saveCriteria(form);
       setSaved(true);
+      setIsDirty(false);
       onSave?.();
       setTimeout(() => setSaved(false), 2500);
     } finally {
@@ -110,12 +113,13 @@ export default function SettingsForm({ onSave }) {
         <input
           type="number"
           value={form.min_salary ?? ""}
-          onChange={(e) =>
+          onChange={(e) => {
             setForm((prev) => ({
               ...prev,
               min_salary: e.target.value ? parseInt(e.target.value) : null,
-            }))
-          }
+            }));
+            setIsDirty(true);
+          }}
           placeholder="e.g. 120000"
           className="text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 rounded px-2 py-1 w-48 focus:outline-none focus:ring-1 focus:ring-indigo-400"
         />
@@ -126,12 +130,13 @@ export default function SettingsForm({ onSave }) {
           id="exclude-onsite"
           type="checkbox"
           checked={form.exclude_onsite_outside_major_cities}
-          onChange={(e) =>
+          onChange={(e) => {
             setForm((prev) => ({
               ...prev,
               exclude_onsite_outside_major_cities: e.target.checked,
-            }))
-          }
+            }));
+            setIsDirty(true);
+          }}
           className="rounded border-gray-300 dark:border-gray-600 text-indigo-600"
         />
         <label htmlFor="exclude-onsite" className="text-sm text-gray-700 dark:text-gray-300">
@@ -148,6 +153,11 @@ export default function SettingsForm({ onSave }) {
           {saving ? "Saving…" : "Save Criteria"}
         </button>
         {saved && <span className="text-sm text-green-600 dark:text-green-400">Saved!</span>}
+        {isDirty && !saved && (
+          <span className="text-xs text-amber-500 dark:text-amber-400">
+            Unsaved changes — hit Save Criteria to apply
+          </span>
+        )}
       </div>
     </form>
   );
