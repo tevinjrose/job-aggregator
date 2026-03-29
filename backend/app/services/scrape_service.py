@@ -55,6 +55,14 @@ async def run_scrape(db: AsyncSession, session_id: str) -> dict:
     if lever_slugs:
         all_jobs.extend(await LeverScraper().fetch_jobs(lever_slugs))
 
+    # Track which freshly-scraped slugs returned 0 jobs (wrong slug / not on platform)
+    slug_counts: dict[str, int] = {}
+    for j in all_jobs:
+        slug_counts[j["company_slug"]] = slug_counts.get(j["company_slug"], 0) + 1
+    no_results_slugs = [
+        s for s in (greenhouse_slugs + lever_slugs) if slug_counts.get(s, 0) == 0
+    ]
+
     us_jobs = [j for j in all_jobs if is_us_location(j.get("location"))]
     skipped = len(all_jobs) - len(us_jobs)
     print(f"[Scrape] {len(all_jobs)} fetched, {skipped} non-US skipped, {len(us_jobs)} to save")
@@ -90,4 +98,5 @@ async def run_scrape(db: AsyncSession, session_id: str) -> dict:
         "total_fetched": len(us_jobs),
         "new_jobs": new_count,
         "cached": cached_count,
+        "no_results": no_results_slugs,
     }

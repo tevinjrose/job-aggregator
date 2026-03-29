@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # ── Company sources ────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ class UserCriteriaIn(BaseModel):
     titles: list[str] = []
     keywords: list[str] = []
     locations: list[str] = []
-    min_salary: int | None = None
+    min_salary: int | None = Field(default=None, ge=0)
     excluded_companies: list[str] = []
     exclude_onsite_outside_major_cities: bool = True
 

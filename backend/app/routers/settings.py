@@ -1,4 +1,6 @@
+import asyncio
 import json
+from collections import defaultdict
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy import select
@@ -14,6 +16,9 @@ from app.schemas import (
 )
 
 router = APIRouter()
+
+# Per-session lock to prevent concurrent requests racing past the company cap
+_company_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
 
 def session_id_header(x_session_id: str = Header(...)) -> str:
@@ -101,38 +106,39 @@ async def add_company(
     MAX_COMPANIES = 20
     slug = body.slug.strip().lower()
 
-    count = len((await db.execute(
-        select(SessionCompany).where(SessionCompany.session_id == session_id)
-    )).scalars().all())
-    if count >= MAX_COMPANIES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Maximum of {MAX_COMPANIES} companies per session."
-        )
+    async with _company_locks[session_id]:
+        count = len((await db.execute(
+            select(SessionCompany).where(SessionCompany.session_id == session_id)
+        )).scalars().all())
+        if count >= MAX_COMPANIES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Maximum of {MAX_COMPANIES} companies per session."
+            )
 
-    existing = await db.execute(
-        select(SessionCompany).where(
-            SessionCompany.session_id == session_id,
-            SessionCompany.source == body.source,
-            SessionCompany.slug == slug,
+        existing = await db.execute(
+            select(SessionCompany).where(
+                SessionCompany.session_id == session_id,
+                SessionCompany.source == body.source,
+                SessionCompany.slug == slug,
+            )
         )
-    )
-    if existing.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="Already in your list.")
+        if existing.scalar_one_or_none():
+            raise HTTPException(status_code=409, detail="Already in your list.")
 
-    # Ensure global CompanySource entry exists (for cache tracking)
-    cs = await db.execute(
-        select(CompanySource).where(
-            CompanySource.source == body.source, CompanySource.slug == slug
+        # Ensure global CompanySource entry exists (for cache tracking)
+        cs = await db.execute(
+            select(CompanySource).where(
+                CompanySource.source == body.source, CompanySource.slug == slug
+            )
         )
-    )
-    if not cs.scalar_one_or_none():
-        db.add(CompanySource(source=body.source, slug=slug))
+        if not cs.scalar_one_or_none():
+            db.add(CompanySource(source=body.source, slug=slug))
 
-    sc = SessionCompany(session_id=session_id, source=body.source, slug=slug)
-    db.add(sc)
-    await db.commit()
-    await db.refresh(sc)
+        sc = SessionCompany(session_id=session_id, source=body.source, slug=slug)
+        db.add(sc)
+        await db.commit()
+        await db.refresh(sc)
 
     return SessionCompanyOut(id=sc.id, source=sc.source, slug=sc.slug, last_scraped_at=None)
 

@@ -113,14 +113,38 @@ export default function Settings() {
           }`}
         >
           {scrapeResult.ok ? (
-            <>
+            <div className="space-y-1">
+              <p>
               {scrapeResult.new_jobs > 0 ? (
-                <><strong>{scrapeResult.new_jobs}</strong> new jobs added — </>
+                <>
+                  <strong>{scrapeResult.new_jobs}</strong> new job{scrapeResult.new_jobs === 1 ? "" : "s"} added —{" "}
+                  scoring your feed in the background.
+                </>
+              ) : scrapeResult.total_fetched > 0 ? (
+                <>
+                  No new listings found — <strong>{scrapeResult.total_fetched}</strong> job{scrapeResult.total_fetched === 1 ? "" : "s"} checked, all already in your feed.
+                </>
+              ) : scrapeResult.cached > 0 ? (
+                <>
+                  Your companies were all scraped recently —{" "}
+                  {scrapeResult.cached === 1 ? "1 company" : `${scrapeResult.cached} companies`} served from cache. Feed is up to date.
+                </>
               ) : (
-                <>All jobs up to date ({scrapeResult.cached} {scrapeResult.cached === 1 ? "company" : "companies"} from cache) — </>
+                <>
+                  No jobs found — the company slug may be incorrect, or they may not post on this platform.
+                </>
               )}
-              scoring your feed in the background.
-            </>
+              </p>
+              {scrapeResult.no_results?.length > 0 && (
+                <p className="text-xs text-amber-500 dark:text-amber-400">
+                  No listings found for:{" "}
+                  <span className="font-medium">
+                    {scrapeResult.no_results.join(", ")}
+                  </span>{" "}
+                  — double-check those slugs or try the other platform.
+                </p>
+              )}
+            </div>
           ) : (
             scrapeResult.detail
           )}
