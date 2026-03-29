@@ -51,11 +51,11 @@ export default function SectorPicker({ companies = [], onRefresh }) {
 
   return (
     <div className="mb-6">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400 flex-1 min-w-0">
           Not sure where to start? Pick a sector to auto-add companies:
         </p>
-        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+        <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
           atCap
             ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
             : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
