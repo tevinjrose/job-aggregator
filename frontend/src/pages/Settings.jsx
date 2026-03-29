@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import CompanySlugs from "../components/CompanySlugs";
 import SectorPicker from "../components/SectorPicker";
 import SettingsForm from "../components/SettingsForm";
@@ -68,7 +69,9 @@ export default function Settings() {
       setScrapeResult({ ok: true, ...data });
       startPolling();
     } catch (err) {
-      const detail = err.response?.data?.detail ?? "Scrape failed — check the backend logs.";
+      const detail =
+        err.response?.data?.detail ??
+        `Scrape failed: could not reach backend (${err.message ?? "network error"}).`;
       setScrapeResult({ ok: false, detail });
     } finally {
       setScraping(false);
@@ -179,6 +182,14 @@ export default function Settings() {
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Add companies by their job board slug. Not sure which platform a company uses? Try both — each card links to the right URL. Slugs scraped recently by another user are served from cache, so no redundant calls.
         </p>
+        <div className="mb-4">
+          <Link
+            to="/companies"
+            className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+          >
+            Browse Suggested Companies
+          </Link>
+        </div>
         <SectorPicker companies={companies} onRefresh={refreshCompanies} />
         <CompanySlugs companies={companies} onRefresh={refreshCompanies} />
       </section>

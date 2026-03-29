@@ -28,6 +28,7 @@ export const getCriteria = () => api.get("/settings/criteria");
 export const saveCriteria = (data) => api.put("/settings/criteria", data);
 
 // ── Companies ─────────────────────────────────────────────────────────────────
+export const getCompanyDirectory = () => api.get("/settings/company-directory");
 export const getCompanies = () => api.get("/settings/companies");
 export const addCompany = (source, slug) =>
   api.post("/settings/companies", { source, slug });

@@ -69,6 +69,7 @@ export default function SettingsForm({ onSave }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     getCriteria().then((r) => setForm(r.data));
@@ -82,12 +83,18 @@ export default function SettingsForm({ onSave }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
+    setSaveError("");
     try {
       await saveCriteria(form);
       setSaved(true);
       setIsDirty(false);
       onSave?.();
       setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      setSaveError(
+        err.response?.data?.detail ??
+          `Could not save criteria (${err.message ?? "network error"}).`
+      );
     } finally {
       setSaving(false);
     }
@@ -159,6 +166,9 @@ export default function SettingsForm({ onSave }) {
           </span>
         )}
       </div>
+      {saveError && (
+        <p className="text-xs text-red-500 dark:text-red-400">{saveError}</p>
+      )}
     </form>
   );
 }

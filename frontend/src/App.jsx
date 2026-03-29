@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
+import Companies from "./pages/Companies";
 import { useDarkMode } from "./hooks/useDarkMode";
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/companies" element={<Companies />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

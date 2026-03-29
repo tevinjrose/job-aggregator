@@ -55,6 +55,16 @@ export default function Navbar({ dark, onToggleDark }) {
             >
               Settings
             </Link>
+            <Link
+              to="/companies"
+              className={
+                pathname === "/companies"
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              }
+            >
+              Companies
+            </Link>
           </div>
           <button
             onClick={onToggleDark}

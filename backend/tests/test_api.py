@@ -60,6 +60,15 @@ async def test_criteria_is_session_isolated(client):
 # ── Companies ─────────────────────────────────────────────────────────────────
 
 @pytest.mark.asyncio
+async def test_company_directory(client):
+    r = await client.get("/api/settings/company-directory", headers=HEADERS)
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data) > 0
+    assert {"source", "slug", "label"} <= set(data[0].keys())
+
+
+@pytest.mark.asyncio
 async def test_add_company(client):
     r = await client.post(
         "/api/settings/companies",

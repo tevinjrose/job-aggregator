@@ -20,6 +20,12 @@ class SessionCompanyCreate(BaseModel):
     slug: str
 
 
+class CompanyDirectoryOut(BaseModel):
+    source: Literal["greenhouse", "lever"]
+    slug: str
+    label: str
+
+
 # ── User criteria ──────────────────────────────────────────────────────────────
 
 class UserCriteriaIn(BaseModel):

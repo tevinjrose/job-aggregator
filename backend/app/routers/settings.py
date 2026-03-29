@@ -6,9 +6,11 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.company_directory import COMPANY_DIRECTORY
 from app.database import get_db
 from app.models import CompanySource, SessionCompany, SessionCriteria
 from app.schemas import (
+    CompanyDirectoryOut,
     SessionCompanyCreate,
     SessionCompanyOut,
     UserCriteriaIn,
@@ -74,6 +76,10 @@ async def save_criteria(
 
 
 # ── Companies ──────────────────────────────────────────────────────────────────
+
+@router.get("/company-directory", response_model=list[CompanyDirectoryOut])
+async def list_company_directory():
+    return COMPANY_DIRECTORY
 
 @router.get("/companies", response_model=list[SessionCompanyOut])
 async def list_companies(
