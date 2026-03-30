@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSectors, addSector, removeSector } from "../api/client";
 
 const MAX_COMPANIES = 40;
@@ -7,6 +7,21 @@ export default function SectorPicker({ companies = [], onRefresh }) {
   const [sectors, setSectors] = useState({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
+  const pendingSector = useRef(null);
+
+  // Clear busy only once companies prop reflects the sector as fully added
+  useEffect(() => {
+    if (!pendingSector.current) return;
+    const name = pendingSector.current;
+    const slugs = sectors[name] ?? [];
+    const added = slugs.filter(({ source, slug }) =>
+      companies.some((c) => c.source === source && c.slug === slug)
+    ).length;
+    if (added === slugs.length) {
+      setBusy(null);
+      pendingSector.current = null;
+    }
+  }, [companies, sectors]);
 
   useEffect(() => {
     getSectors()
@@ -32,14 +47,17 @@ export default function SectorPicker({ companies = [], onRefresh }) {
       const { done } = sectorStatus(name);
       if (done) {
         await removeSector(name);
+        await onRefresh?.();
+        setBusy(null);
       } else {
         await addSector(name);
+        pendingSector.current = name;
+        await onRefresh?.();
+        // busy cleared by useEffect once companies prop confirms sector is fully added
       }
-      await onRefresh?.();
     } catch {
-      // ignore
-    } finally {
       setBusy(null);
+      pendingSector.current = null;
     }
   }
 
