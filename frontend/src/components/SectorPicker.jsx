@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSectors, addSector, removeSector } from "../api/client";
 
-const MAX_COMPANIES = 20;
+const MAX_COMPANIES = 40;
 
 export default function SectorPicker({ companies = [], onRefresh }) {
   const [sectors, setSectors] = useState({});
@@ -14,27 +14,23 @@ export default function SectorPicker({ companies = [], onRefresh }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const atCap = companies.length >= MAX_COMPANIES;
-
   function sectorStatus(name) {
     const slugs = sectors[name] ?? [];
-    if (!slugs.length) return { added: 0, total: 0, done: false, partial: false };
+    if (!slugs.length) return { added: 0, total: 0, done: false, canAdd: false };
     const added = slugs.filter(({ source, slug }) =>
       companies.some((c) => c.source === source && c.slug === slug)
     ).length;
-    return {
-      added,
-      total: slugs.length,
-      done: added === slugs.length,
-      partial: added > 0 && added < slugs.length,
-    };
+    const remaining = slugs.length - added;
+    const done = added === slugs.length;
+    const canAdd = !done && companies.length + remaining <= MAX_COMPANIES;
+    return { added, total: slugs.length, done, remaining, canAdd };
   }
 
   async function handleToggle(name) {
     setBusy(name);
     try {
-      const { done, partial } = sectorStatus(name);
-      if (done || (partial && atCap)) {
+      const { done } = sectorStatus(name);
+      if (done) {
         await removeSector(name);
       } else {
         await addSector(name);
@@ -48,6 +44,8 @@ export default function SectorPicker({ companies = [], onRefresh }) {
   }
 
   if (loading) return null;
+
+  const atCap = companies.length >= MAX_COMPANIES;
 
   return (
     <div className="mb-6">
@@ -71,10 +69,10 @@ export default function SectorPicker({ companies = [], onRefresh }) {
       )}
 
       <div className="flex flex-wrap gap-2">
-        {Object.entries(sectors).map(([name, companies_]) => {
-          const { added, total, done, partial } = sectorStatus(name);
+        {Object.entries(sectors).map(([name, slugs]) => {
+          const { done, canAdd, total } = sectorStatus(name);
           const isBusy = busy === name;
-          const locked = atCap && !done && !partial;
+          const locked = !done && !canAdd;
 
           return (
             <button
@@ -83,20 +81,14 @@ export default function SectorPicker({ companies = [], onRefresh }) {
               disabled={isBusy || locked}
               title={
                 locked
-                  ? `Company limit reached (${MAX_COMPANIES} max)`
+                  ? `Not enough room to add all ${total} companies in this sector`
                   : done
                   ? "Click to remove these companies"
-                  : partial
-                  ? atCap
-                    ? `${added}/${total} added — at company limit, click to remove`
-                    : `${added}/${total} added — click to add remaining`
                   : `Add ${total} companies`
               }
               className={`text-sm px-3 py-1.5 rounded-full border font-medium transition-all ${
                 done
                   ? "border-green-500 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:border-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
-                  : partial
-                  ? "border-indigo-400 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:border-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                   : locked
                   ? "border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50"
                   : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
@@ -104,9 +96,7 @@ export default function SectorPicker({ companies = [], onRefresh }) {
             >
               {isBusy ? "…" : done ? `✓ ${name}` : name}
               {!done && !isBusy && (
-                <span className={`ml-1.5 text-xs ${partial ? "text-indigo-500 dark:text-indigo-400 font-semibold" : "text-gray-400 dark:text-gray-500"}`}>
-                  {partial ? `${added}/${total}` : total}
-                </span>
+                <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500">{total}</span>
               )}
             </button>
           );

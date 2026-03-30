@@ -105,28 +105,23 @@ async def add_sector(
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Sector not found.")
 
-    MAX_COMPANIES = 20
-    current_count = len((await db.execute(
+    MAX_COMPANIES = 40
+    current = (await db.execute(
         select(SessionCompany).where(SessionCompany.session_id == x_session_id)
-    )).scalars().all())
+    )).scalars().all()
+    current_slugs = {(sc.source, sc.slug) for sc in current}
 
-    added = 0
-    for c in companies:
-        if current_count + added >= MAX_COMPANIES:
-            break
-        slug = c["slug"]
-        source = c["source"]
+    remaining = [c for c in companies if (c["source"], c["slug"]) not in current_slugs]
 
-        existing = (await db.execute(
-            select(SessionCompany).where(
-                SessionCompany.session_id == x_session_id,
-                SessionCompany.source == source,
-                SessionCompany.slug == slug,
-            )
-        )).scalar_one_or_none()
-        if existing:
-            continue
+    if len(current) + len(remaining) > MAX_COMPANIES:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=400,
+            detail=f"Adding this sector would exceed the {MAX_COMPANIES}-company limit.",
+        )
 
+    for c in remaining:
+        slug, source = c["slug"], c["source"]
         cs = (await db.execute(
             select(CompanySource).where(
                 CompanySource.source == source, CompanySource.slug == slug
@@ -134,9 +129,7 @@ async def add_sector(
         )).scalar_one_or_none()
         if not cs:
             db.add(CompanySource(source=source, slug=slug))
-
         db.add(SessionCompany(session_id=x_session_id, source=source, slug=slug))
-        added += 1
 
     await db.commit()
-    return {"added": added}
+    return {"added": len(remaining)}

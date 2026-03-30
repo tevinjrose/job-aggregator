@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { addCompany, getCompanyDirectory } from "../api/client";
 
-const MAX_COMPANIES = 20;
+const MAX_COMPANIES = 40;
 const SOURCE_LABELS = { greenhouse: "Greenhouse", lever: "Lever" };
 
 export default function CompanyDirectoryPicker({ companies = [], onRefresh }) {
