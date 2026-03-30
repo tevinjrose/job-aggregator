@@ -39,7 +39,7 @@ export default function SectorPicker({ companies = [], onRefresh }) {
       } else {
         await addSector(name);
       }
-      onRefresh?.();
+      await onRefresh?.();
     } catch {
       // ignore
     } finally {
