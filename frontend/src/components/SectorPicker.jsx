@@ -95,7 +95,7 @@ export default function SectorPicker({ companies = [], onRefresh }) {
               }
               className={`text-sm px-3 py-1.5 rounded-full border font-medium transition-all ${
                 done
-                  ? "border-green-500 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:border-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                  ? "border-green-500 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 [@media(hover:hover)]:hover:border-red-400 [@media(hover:hover)]:hover:text-red-500 [@media(hover:hover)]:hover:bg-red-50 dark:[@media(hover:hover)]:hover:bg-red-900/20 dark:[@media(hover:hover)]:hover:text-red-400"
                   : locked
                   ? "border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50"
                   : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
