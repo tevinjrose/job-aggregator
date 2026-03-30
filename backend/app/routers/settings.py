@@ -109,7 +109,7 @@ async def add_company(
     session_id: str = Depends(session_id_header),
     db: AsyncSession = Depends(get_db),
 ):
-    MAX_COMPANIES = 20
+    MAX_COMPANIES = 40
     slug = body.slug.strip().lower()
 
     async with _company_locks[session_id]:
@@ -119,7 +119,7 @@ async def add_company(
         if count >= MAX_COMPANIES:
             raise HTTPException(
                 status_code=400,
-                detail=f"Maximum of {MAX_COMPANIES} companies per session."
+                detail=f"Maximum of {MAX_COMPANIES} companies per session.",
             )
 
         existing = await db.execute(
