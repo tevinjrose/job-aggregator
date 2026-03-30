@@ -1,17 +1,38 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import CompanySource, Job, SessionCompany
+from app.models import CompanySource, Job, JobScore, JobStatus, SessionCompany
 from app.scrapers.greenhouse import GreenhouseScraper
 from app.scrapers.lever import LeverScraper
 from app.services.filters import is_us_location
 
-CACHE_HOURS = 6  # skip re-scraping a company within this window
+CACHE_HOURS = 6   # skip re-scraping a company within this window
+PURGE_DAYS = 60   # delete jobs older than this on each scrape run
+
+
+async def _purge_old_jobs(db: AsyncSession) -> int:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=PURGE_DAYS)
+    stale_ids = [
+        j.id
+        for j in (
+            await db.execute(select(Job).where(Job.posted_at < cutoff))
+        ).scalars().all()
+    ]
+    if not stale_ids:
+        return 0
+    await db.execute(delete(JobScore).where(JobScore.job_id.in_(stale_ids)))
+    await db.execute(delete(JobStatus).where(JobStatus.job_id.in_(stale_ids)))
+    await db.execute(delete(Job).where(Job.id.in_(stale_ids)))
+    await db.commit()
+    print(f"[Purge] Removed {len(stale_ids)} jobs older than {PURGE_DAYS} days")
+    return len(stale_ids)
 
 
 async def run_scrape(db: AsyncSession, session_id: str) -> dict:
+    await _purge_old_jobs(db)
+
     companies = (
         await db.execute(
             select(SessionCompany).where(SessionCompany.session_id == session_id)

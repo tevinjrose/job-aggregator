@@ -55,6 +55,7 @@ class JobOut(BaseModel):
     posted_at: datetime
     score: int | None
     status: str | None
+    is_stale: bool = False
 
 
 class JobStatusUpdate(BaseModel):
