@@ -83,6 +83,9 @@ export default function JobCard({ job, onRemove }) {
             {job.source}
           </span>
           <span className="text-xs text-gray-400 dark:text-gray-500">{relativeDate(job.posted_at)}</span>
+          {job.is_stale && (
+            <span className="text-xs text-amber-500 dark:text-amber-400">· may be closed</span>
+          )}
         </div>
 
         {/* Actions */}

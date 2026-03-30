@@ -96,7 +96,7 @@ export default function SectorPicker({ companies = [], onRefresh }) {
                 done
                   ? "border-green-500 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:border-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                   : partial
-                  ? "border-amber-400 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 hover:border-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  ? "border-indigo-400 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:border-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                   : locked
                   ? "border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50"
                   : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400"
@@ -104,7 +104,7 @@ export default function SectorPicker({ companies = [], onRefresh }) {
             >
               {isBusy ? "…" : done ? `✓ ${name}` : name}
               {!done && !isBusy && (
-                <span className={`ml-1.5 text-xs ${partial ? "text-amber-500 dark:text-amber-400 font-semibold" : "text-gray-400 dark:text-gray-500"}`}>
+                <span className={`ml-1.5 text-xs ${partial ? "text-indigo-500 dark:text-indigo-400 font-semibold" : "text-gray-400 dark:text-gray-500"}`}>
                   {partial ? `${added}/${total}` : total}
                 </span>
               )}

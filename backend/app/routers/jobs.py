@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
@@ -11,6 +12,13 @@ from app.schemas import JobOut, JobStatusUpdate
 from app.services.filters import is_us_location, title_matches
 
 router = APIRouter()
+
+STALE_DAYS = 30
+
+
+def _is_stale(posted_at: datetime) -> bool:
+    posted = posted_at if posted_at.tzinfo else posted_at.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - posted).days >= STALE_DAYS
 
 
 def _preferred_location_ok(location: str, preferred: list[str]) -> bool:
@@ -34,6 +42,7 @@ def _build_job_out(job: Job, scores: dict, statuses: dict) -> JobOut:
         posted_at=job.posted_at,
         score=scores.get(job.id),
         status=statuses.get(job.id),
+        is_stale=_is_stale(job.posted_at),
     )
 
 
@@ -45,6 +54,43 @@ async def list_jobs(
 ):
     session_id = x_session_id
 
+    if tab in ("saved", "applied"):
+        # Persist across company removal — query by status directly, not session companies
+        status_rows = (
+            await db.execute(
+                select(JobStatus).where(
+                    JobStatus.session_id == session_id,
+                    JobStatus.status == tab,
+                )
+            )
+        ).scalars().all()
+
+        if not status_rows:
+            return []
+
+        job_ids = [r.job_id for r in status_rows]
+        jobs = (
+            await db.execute(select(Job).where(Job.id.in_(job_ids)))
+        ).scalars().all()
+
+        scores = {
+            r.job_id: r.score
+            for r in (
+                await db.execute(
+                    select(JobScore).where(JobScore.session_id == session_id)
+                )
+            ).scalars().all()
+        }
+        statuses = {r.job_id: r.status for r in status_rows}
+
+        result = [_build_job_out(j, scores, statuses) for j in jobs]
+        result.sort(
+            key=lambda j: (j.score if j.score is not None else -1, j.posted_at.timestamp()),
+            reverse=True,
+        )
+        return result
+
+    # Feed tab — scoped to current session companies
     companies = (
         await db.execute(
             select(SessionCompany).where(SessionCompany.session_id == session_id)
@@ -80,32 +126,26 @@ async def list_jobs(
         ).scalars().all()
     }
 
-    if tab == "saved":
-        filtered = [j for j in jobs if statuses.get(j.id) == "saved"]
-    elif tab == "applied":
-        filtered = [j for j in jobs if statuses.get(j.id) == "applied"]
-    else:
-        # Feed: exclude actioned jobs, then apply criteria pre-filter
-        actioned = {"saved", "applied", "dismissed"}
-        filtered = [j for j in jobs if statuses.get(j.id) not in actioned]
+    actioned = {"saved", "applied", "dismissed"}
+    filtered = [j for j in jobs if statuses.get(j.id) not in actioned]
 
-        criteria = (
-            await db.execute(
-                select(SessionCriteria).where(SessionCriteria.session_id == session_id)
-            )
-        ).scalar_one_or_none()
+    criteria = (
+        await db.execute(
+            select(SessionCriteria).where(SessionCriteria.session_id == session_id)
+        )
+    ).scalar_one_or_none()
 
-        if criteria:
-            preferred_locs = json.loads(criteria.locations)
-            desired_titles = json.loads(criteria.titles)
-            excluded = [c.lower() for c in json.loads(criteria.excluded_companies)]
-            filtered = [
-                j for j in filtered
-                if is_us_location(j.location)
-                and title_matches(j.title, desired_titles)
-                and _preferred_location_ok(j.location, preferred_locs)
-                and j.company_slug.lower() not in excluded
-            ]
+    if criteria:
+        preferred_locs = json.loads(criteria.locations)
+        desired_titles = json.loads(criteria.titles)
+        excluded = [c.lower() for c in json.loads(criteria.excluded_companies)]
+        filtered = [
+            j for j in filtered
+            if is_us_location(j.location)
+            and title_matches(j.title, desired_titles)
+            and _preferred_location_ok(j.location, preferred_locs)
+            and j.company_slug.lower() not in excluded
+        ]
 
     result = [_build_job_out(j, scores, statuses) for j in filtered]
     result.sort(
@@ -168,4 +208,5 @@ async def update_job_status(
         posted_at=job.posted_at,
         score=score_row.score if score_row else None,
         status=body.status,
+        is_stale=_is_stale(job.posted_at),
     )
