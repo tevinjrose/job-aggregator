@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { getSectors, addSector, removeSector } from "../api/client";
 
 const MAX_COMPANIES = 40;
@@ -7,21 +7,7 @@ export default function SectorPicker({ companies = [], onRefresh }) {
   const [sectors, setSectors] = useState({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
-  const pendingSector = useRef(null);
-
-  // Clear busy only once companies prop reflects the sector as fully added
-  useEffect(() => {
-    if (!pendingSector.current) return;
-    const name = pendingSector.current;
-    const slugs = sectors[name] ?? [];
-    const added = slugs.filter(({ source, slug }) =>
-      companies.some((c) => c.source === source && c.slug === slug)
-    ).length;
-    if (added === slugs.length) {
-      setBusy(null);
-      pendingSector.current = null;
-    }
-  }, [companies, sectors]);
+  const [optimisticDone, setOptimisticDone] = useState(new Set());
 
   useEffect(() => {
     getSectors()
@@ -36,7 +22,7 @@ export default function SectorPicker({ companies = [], onRefresh }) {
       companies.some((c) => c.source === source && c.slug === slug)
     ).length;
     const remaining = slugs.length - added;
-    const done = added === slugs.length;
+    const done = added === slugs.length || optimisticDone.has(name);
     const canAdd = !done && companies.length + remaining <= MAX_COMPANIES;
     return { added, total: slugs.length, done, remaining, canAdd };
   }
@@ -46,18 +32,21 @@ export default function SectorPicker({ companies = [], onRefresh }) {
     try {
       const { done } = sectorStatus(name);
       if (done) {
+        setOptimisticDone((prev) => { const s = new Set(prev); s.delete(name); return s; });
         await removeSector(name);
         await onRefresh?.();
-        setBusy(null);
       } else {
         await addSector(name);
-        pendingSector.current = name;
+        // Mark done optimistically so color flips to green immediately
+        setOptimisticDone((prev) => new Set([...prev, name]));
         await onRefresh?.();
-        // busy cleared by useEffect once companies prop confirms sector is fully added
+        // Real companies data is now loaded — drop the optimistic override
+        setOptimisticDone((prev) => { const s = new Set(prev); s.delete(name); return s; });
       }
     } catch {
+      setOptimisticDone(new Set());
+    } finally {
       setBusy(null);
-      pendingSector.current = null;
     }
   }
 
